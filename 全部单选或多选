@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="box">
+    <p><input type="checkbox">1</p>
+    <p><input type="checkbox">2</p>
+    <p><input type="checkbox">3</p>
+    <p><input type="checkbox">4</p>
+    <p><input type="checkbox">5</p>
+    <p><input type="checkbox">6</p>
+</div>
+<button id="but">
+    全选
+</button>
+</body>
+</html>
+<script>
+    /*https://github.com/cryeer/interview-dhl.git*/
+    var inputs=document.getElementById('box').getElementsByTagName('input');
+    var but=document.getElementById('but');
+    var status = 0;
+    but.onclick = function () {
+        status = status == 0 ? 1:0;
+        var str = status == 0 ? "": "checked";
+        this.innerText = status == 0 ? "全选" : "全不选";
+        for (var i=0;i<=inputs.length;i++){
+            inputs[i].checked=str;
+        }
+    };
+</script>
