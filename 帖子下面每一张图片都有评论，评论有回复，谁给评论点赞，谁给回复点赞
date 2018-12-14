@@ -59,3 +59,51 @@ text
         $msg['data'] = $result;
         return $this->successJson($msg);
     }
+    
+    
+     public function special_topic_comment()
+    {
+        $data = input();
+        //获取帖子信息
+        $result['topic'] = Db::name('topic')
+            ->where('id', $data['topic_id'])
+            ->find();
+        //获取发帖人信息
+        $result['user'] = get_curl('user', '/user/get_user_information', ['id' => $result['topic']['user_id']])['data'];
+        //获取该帖子下所有图片对应的全部评论
+        $img_url = explode(',', $result['topic']['img_url']);
+
+        foreach ($img_url as $k => $v) {
+            $arr[$k]['img_url'] = $v;
+            //这里得到全部评论
+            $arr[$k]['comment'] = Db::name('comment')
+                ->where('topic_id',$result['topic']['id'])
+                ->where('img', $v)
+                ->order('like_num', 'desc')
+                ->select();
+            //这里得到评论的全部回复
+            foreach ($arr[$k]['comment'] as $key => $value){
+                $arr[$k]['comment'][$key]['reply'] = Db::name('reply')
+                    ->where('topic_id',$result['topic']['id'])
+                    ->where('comment_id',$value['id'])
+                    ->select();
+                //谁给回复点了赞 个数
+                foreach ($arr[$k]['comment'][$key]['reply'] as $index => $reply_like){
+                    $arr[$k]['comment'][$key]['reply'][$index]['reply_like'] = Db::name('reply_like')
+                        ->where('reply_id',$reply_like['id'])
+                        ->count();
+                }
+            }
+            //谁给这个评论点了赞个数
+            foreach ($arr[$k]['comment'] as $i =>$item){
+                $arr[$k]['comment'][$i]['comment_like_count'] = Db::name('comment_like')
+                    ->where('comment_id',$item['id'])
+                    ->count();
+            }
+
+        }
+        $result['comment'] = $arr;
+        $msg['msg'] = '获取成功';
+        $msg['data'] = $result;
+        return $this->successJson($msg);
+    }
