@@ -1,0 +1,61 @@
+# text
+text
+ /**
+     * @title 前台特殊帖详情
+     * @description 前台特殊帖的详情
+     * @author 邓浩林
+     * @url /topic/topic/special_topic_comment
+     * @param name:topic_id require:1 default: desc:帖子id
+     *
+     */
+    public function special_topic_comment()
+    {
+        $data = input();
+        //获取帖子信息
+        $result['topic'] = Db::name('topic')
+            ->where('id', $data['topic_id'])
+            ->find();
+        //获取发帖人信息
+        $result['user'] = get_curl('user', '/user/get_user_information', ['id' => $result['topic']['user_id']])['data'];
+        //获取该帖子下所有图片对应的全部评论
+        $img_url = explode(',', $result['topic']['img_url']);
+//        dump($img_url);
+//        exit();
+//        $result['img_urls'] = $img_urls;
+//        $result['count'] = count($img_url);
+//        for ($index=0;$index<count($img_url);$index++){
+//            $result['img_url'][$index] = Db::name('comment')
+//                ->where('topic_id',$result['topic']['id'])
+//                ->where('img',"$img_url[$index]")
+//                ->order('like_num','desc')
+//                ->select();
+////            $result['img'] = $img_url[$index];
+//        }
+        foreach ($img_url as $k => $v) {
+            $arr[$k]['img_url'] = $v;
+            $arr[$k]['comment'] = Db::name('comment')
+                ->where('topic_id',$result['topic']['id'])
+                ->where('img', $v)
+                ->order('like_num', 'desc')
+                ->select();
+
+            /*dump($arr[$k]['comment']);
+            exit();*/
+            /*for ($i=0;$i<count($arr[$k]['comment']);$i++){
+                $array[$i]['comment_comment'] = Db::name('reply')
+                    ->where('topic_id',$result['topic']['id'])
+                    ->where('comment_id',$arr[$k]['comment'][$i])
+                    ->select();
+            }*/
+            foreach ($arr[$k]['comment'] as $key => $value){
+                $arr[$k]['comment'][$key]['reply'] = Db::name('reply')
+                    ->where('topic_id',$result['topic']['id'])
+                    ->where('comment_id',$value['id'])
+                    ->select();
+            }
+        }
+        $result['comment'] = $arr;
+        $msg['msg'] = '获取成功';
+        $msg['data'] = $result;
+        return $this->successJson($msg);
+    }
